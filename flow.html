@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>brained-flow — System Architecture</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+    background: #0d0d10;
+    color: #d8d8e8;
+    padding: 48px 32px;
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  /* ── Header ── */
+  header { margin-bottom: 48px; }
+  header h1 { font-size: 28px; font-weight: 700; color: #fff; letter-spacing: -0.02em; }
+  header p  { font-size: 14px; color: #666; margin-top: 6px; }
+
+  /* ── Legend ── */
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 48px; }
+  .leg { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #888; }
+  .leg-swatch { width: 12px; height: 12px; border-radius: 3px; }
+
+  /* ── Section ── */
+  .section { margin-bottom: 48px; }
+  .section-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: #555; margin-bottom: 16px;
+  }
+
+  /* ── Grid layouts ── */
+  .row   { display: flex; align-items: stretch; gap: 10px; flex-wrap: wrap; }
+  .col   { display: flex; flex-direction: column; gap: 10px; }
+
+  /* ── Blocks ── */
+  .block {
+    border-radius: 10px; padding: 16px 18px;
+    flex: 1; min-width: 150px;
+    border: 1px solid transparent;
+  }
+  .block .bname { font-size: 13px; font-weight: 600; margin-bottom: 5px; }
+  .block .bdesc { font-size: 11px; color: #888; line-height: 1.55; }
+  .block .btag  {
+    display: inline-block; margin-top: 10px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.04em;
+    padding: 2px 8px; border-radius: 4px;
+  }
+
+  /* Colours */
+  .c-local  { background: #131a14; border-color: #1e3020; }
+  .c-local  .bname { color: #6ec87e; }
+  .c-local  .btag  { background: #1a2a1c; color: #6ec87e; }
+
+  .c-cloud  { background: #111828; border-color: #1c2e50; }
+  .c-cloud  .bname { color: #5a9ee8; }
+  .c-cloud  .btag  { background: #152040; color: #5a9ee8; }
+
+  .c-skill  { background: #14111e; border-color: #2a2040; }
+  .c-skill  .bname { color: #9a7ef0; }
+  .c-skill  .btag  { background: #1e1830; color: #9a7ef0; }
+
+  .c-cmd    { background: #131a14; border-color: #1e3020; }
+  .c-cmd    .bname { color: #5ac87e; }
+  .c-cmd    .btag  { background: #162018; color: #5ac87e; }
+
+  .c-auto   { background: #1a150e; border-color: #3a2810; }
+  .c-auto   .bname { color: #d4924a; }
+  .c-auto   .btag  { background: #281c0c; color: #d4924a; }
+
+  .c-wiki   { background: #1a1218; border-color: #3a2030; }
+  .c-wiki   .bname { color: #d47ab0; }
+  .c-wiki   .btag  { background: #281828; color: #d47ab0; }
+
+  .c-neutral { background: #111114; border-color: #202026; }
+  .c-neutral .bname { color: #aaa; }
+  .c-neutral .btag  { background: #18181c; color: #777; }
+
+  /* ── Arrows ── */
+  .arr      { color: #333; font-size: 18px; display: flex; align-items: center; justify-content: center; padding: 0 2px; flex: 0 0 auto; user-select: none; }
+  .arr-down { text-align: center; color: #2a2a30; font-size: 20px; margin: 6px 0; }
+  .arr-both { color: #2a2a40; }
+
+  /* ── Flow box ── */
+  .flow-wrap {
+    background: #0f0f12;
+    border: 1px solid #1a1a20;
+    border-radius: 14px;
+    padding: 24px;
+  }
+  .flow-step {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid #161618;
+  }
+  .flow-step:last-child { border-bottom: none; padding-bottom: 0; }
+  .flow-step:first-child { padding-top: 0; }
+  .step-num {
+    font-size: 11px; font-weight: 700; color: #444;
+    width: 24px; flex-shrink: 0; padding-top: 2px;
+  }
+  .step-body { flex: 1; }
+  .step-title { font-size: 13px; font-weight: 600; color: #ccc; margin-bottom: 4px; }
+  .step-desc  { font-size: 11px; color: #666; line-height: 1.55; }
+  .step-tags  { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .stag {
+    font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px;
+  }
+
+  /* ── Divider ── */
+  .divider { height: 1px; background: #161618; margin: 40px 0; }
+
+  /* ── Note ── */
+  .note { font-size: 11px; color: #444; margin-top: 14px; line-height: 1.6; }
+
+  /* ── File tree ── */
+  .tree {
+    background: #0f0f12; border: 1px solid #1a1a20;
+    border-radius: 10px; padding: 20px 24px;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12px; line-height: 2;
+    color: #666;
+  }
+  .tree .dir  { color: #5a9ee8; }
+  .tree .file { color: #aaa; }
+  .tree .cmt  { color: #3a3a44; }
+
+  /* ── Two col ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 680px) { .two-col { grid-template-columns: 1fr; } }
+
+  footer { margin-top: 64px; font-size: 11px; color: #333; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>brained-flow</h1>
+  <p>Knowledge-driven workflow for Claude — local wiki ↔ claude.ai Projects ↔ planning ↔ execution</p>
+</header>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="leg"><div class="leg-swatch" style="background:#1e3020"></div>Local / brain/</div>
+  <div class="leg"><div class="leg-swatch" style="background:#1c2e50"></div>Cloud / claude.ai</div>
+  <div class="leg"><div class="leg-swatch" style="background:#2a2040"></div>Cowork skill</div>
+  <div class="leg"><div class="leg-swatch" style="background:#1e3020;border:1px solid #3a5030"></div>Claude Code command</div>
+  <div class="leg"><div class="leg-swatch" style="background:#3a2810"></div>Automatic / background</div>
+  <div class="leg"><div class="leg-swatch" style="background:#3a2030"></div>Wiki files</div>
+</div>
+
+
+<!-- ── LAYER 1: STORAGE ────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">Layer 1 — Storage</div>
+  <div class="row">
+    <div class="block c-local">
+      <div class="bname">brain/</div>
+      <div class="bdesc">
+        Local Markdown wiki. Opened as an Obsidian vault.<br>
+        Subfolders: <code>projects/</code>, <code>knowledge/</code>, <code>resources/</code>, <code>journal/</code>
+      </div>
+      <span class="btag">Local · Obsidian</span>
+    </div>
+    <div class="arr arr-both">⇄</div>
+    <div class="block c-cloud">
+      <div class="bname">claude.ai Projects</div>
+      <div class="bdesc">
+        Cloud knowledge base. Claude reads this in every conversation within the project. Synced from brain/ via wiki-push/pull.
+      </div>
+      <span class="btag">Cloud · claude.ai</span>
+    </div>
+    <div class="arr">+</div>
+    <div class="block c-wiki">
+      <div class="bname">plans/ & wiki files</div>
+      <div class="bdesc">
+        <code>solutions.md</code> — problems &amp; fixes<br>
+        <code>known-issues.md</code> — distilled blockers<br>
+        <code>state.md</code> — source of truth<br>
+        <code>plans/*.md</code> — execution plans
+      </div>
+      <span class="btag">Local · Synced</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── LAYER 2: SYNC ───────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">Layer 2 — Sync (brain/ ↔ claude.ai)</div>
+  <div class="flow-wrap">
+
+    <div class="flow-step">
+      <div class="step-num">→</div>
+      <div class="step-body">
+        <div class="step-title">wiki-watch.ps1 (background, auto-start at login)</div>
+        <div class="step-desc">Watches <code>brain/projects/**/*.md</code> for changes. On change, waits 5s debounce, then calls wiki-push.py for that project.</div>
+        <div class="step-tags">
+          <span class="stag" style="background:#1a150e;color:#d4924a">Auto · PowerShell</span>
+          <span class="stag" style="background:#151515;color:#555">FileSystemWatcher</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="step-num">↑</div>
+      <div class="step-body">
+        <div class="step-title">wiki-push.py — brain/ → claude.ai</div>
+        <div class="step-desc">Reads <code>*.md</code> from configured brain_path, compares with existing docs in the Project via API, deletes stale versions and uploads new ones.</div>
+        <div class="step-tags">
+          <span class="stag" style="background:#111828;color:#5a9ee8">HTTPS · claude.ai API</span>
+          <span class="stag" style="background:#151515;color:#555">session key auth</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="step-num">↓</div>
+      <div class="step-body">
+        <div class="step-title">wiki-pull.py — claude.ai → brain/ (on login)</div>
+        <div class="step-desc">Downloads all docs from claude.ai Project to local brain_path. Skips unchanged files. Triggered by <code>WikiPull-OnLogin</code> scheduled task.</div>
+        <div class="step-tags">
+          <span class="stag" style="background:#131a14;color:#6ec87e">At login · Windows Task Scheduler</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="step-num">⚙</div>
+      <div class="step-body">
+        <div class="step-title">wiki-sync-setup.ps1 — one-time setup</div>
+        <div class="step-desc">Registers <code>WikiPull-OnLogin</code> and <code>WikiWatch-OnLogin</code> in Windows Task Scheduler. Run once after installation.</div>
+        <div class="step-tags">
+          <span class="stag" style="background:#151515;color:#555">Run once</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="note">
+      ⚠ Session key required: F12 → Application → Cookies → claude.ai → <code>sessionKey</code><br>
+      Save to <code>~/.claude/claude-ai-session.key</code> · Expires after a few weeks · Never commit to git
+    </p>
+  </div>
+</div>
+
+
+<!-- ── LAYER 3: SKILLS & COMMANDS ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">Layer 3 — Skills (Cowork) &amp; Commands (Claude Code / VS Code)</div>
+  <div class="two-col">
+
+    <div>
+      <div class="section-label" style="margin-bottom:10px">Cowork skills</div>
+      <div class="col">
+        <div class="block c-skill">
+          <div class="bname">brain-sync</div>
+          <div class="bdesc">Use the sync system — push, pull, watch, troubleshoot auth errors.</div>
+          <span class="btag">Auto-triggered by context</span>
+        </div>
+        <div class="block c-skill">
+          <div class="bname">wiki-setup</div>
+          <div class="bdesc">Install and configure brain/ sync from scratch on a new machine.</div>
+          <span class="btag">Auto-triggered by context</span>
+        </div>
+        <div class="block c-skill">
+          <div class="bname">brain-plan</div>
+          <div class="bdesc">Plan a task grounded in wiki context. Loads only relevant files (~62% context saved). Creates <code>plans/*.md</code>.</div>
+          <span class="btag">Auto-triggered by context</span>
+        </div>
+        <div class="block c-skill">
+          <div class="bname">brain-run</div>
+          <div class="bdesc">Execute the active plan via subagents. Injects known-issues context per step. Writes solutions back to wiki.</div>
+          <span class="btag">Auto-triggered by context</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label" style="margin-bottom:10px">Claude Code / VS Code commands</div>
+      <div class="col">
+        <div class="block c-cmd">
+          <div class="bname">/brain-plan</div>
+          <div class="bdesc">Same as brain-plan skill. Invoked via slash command in terminal or VS Code. Creates <code>plans/&lt;date&gt;_&lt;slug&gt;.md</code>.</div>
+          <span class="btag">.claude/commands/brain-plan.md</span>
+        </div>
+        <div class="block c-cmd">
+          <div class="bname">/brain-run</div>
+          <div class="bdesc">Execute plan via subagents. Mark steps [x], [~], [!]. Save solutions to wiki. Suggest /brain-plan for blockers.</div>
+          <span class="btag">.claude/commands/brain-run.md</span>
+        </div>
+        <div class="block c-neutral">
+          <div class="bname">Install commands</div>
+          <div class="bdesc"><code>Copy-Item commands\*.md .\.claude\commands\</code><br>or use install.ps1 — it asks for the target path.</div>
+          <span class="btag">Per-project</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ── LAYER 4: FULL CYCLE ────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">Layer 4 — Full working cycle</div>
+  <div class="flow-wrap">
+
+    <div class="flow-step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Edit brain/ locally</div>
+        <div class="step-desc">Use Obsidian, VS Code, or any editor. <code>[[wikilinks]]</code> and YAML frontmatter are preserved.</div>
+        <div class="step-tags">
+          <span class="stag" style="background:#131a14;color:#6ec87e">Local</span>
+          <span class="stag" style="background:#151515;color:#555">Obsidian · VS Code</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">wiki-watch auto-pushes (5s debounce)</div>
+        <div class="step-desc">Changes appear in claude.ai Project. Mobile Claude sees current context immediately.</div>
+        <div class="step-tags">
+          <span class="stag" style="background:#1a150e;color:#d4924a">Automatic</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">Plan: brain-plan (Cowork) or /brain-plan (Claude Code)</div>
+        <div class="step-desc">
+          Extracts task topic → calls <code>/wiki &lt;topic&gt;</code> to load only relevant wiki files →
+          checks <code>known-issues.md</code> for existing blockers →
+          spawns Plan agent with grounded context →
+          writes <code>plans/YYYY-MM-DD_slug.md</code>.
+        </div>
+        <div class="step-tags">
+          <span class="stag" style="background:#14111e;color:#9a7ef0">Cowork</span>
+          <span class="stag" style="background:#131a14;color:#5ac87e">Claude Code</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-title">Execute: brain-run (Cowork) or /brain-run (Claude Code)</div>
+        <div class="step-desc">
+          Finds active plan → shows execution graph → waits for user confirmation →
+          spawns subagents (parallel where possible) →
+          verifies with TS/lint diagnostics →
+          marks steps [x] done, [~] partial, [!] blocked.
+        </div>
+        <div class="step-tags">
+          <span class="stag" style="background:#14111e;color:#9a7ef0">Cowork</span>
+          <span class="stag" style="background:#131a14;color:#5ac87e">Claude Code</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <div class="step-title">Capture knowledge back to wiki</div>
+        <div class="step-desc">
+          Subagents report findings →
+          <code>solutions.md</code> gets non-trivial problems &amp; fixes →
+          <code>known-issues.md</code> is updated (distilled index) →
+          <code>.raw_nuances.md</code> gets architectural invariants.
+          Blocked steps become new brain-plan tasks.
+        </div>
+        <div class="step-tags">
+          <span class="stag" style="background:#1a1218;color:#d47ab0">Wiki files</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="step-num">6</div>
+      <div class="step-body">
+        <div class="step-title">wiki-watch auto-pushes updated wiki</div>
+        <div class="step-desc">Solutions and new knowledge land in claude.ai Project. Next session starts with full context — no re-explaining needed.</div>
+        <div class="step-tags">
+          <span class="stag" style="background:#1a150e;color:#d4924a">Automatic</span>
+          <span class="stag" style="background:#111828;color:#5a9ee8">claude.ai</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ── INSTALLATION ───────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">Installation</div>
+  <div class="flow-wrap">
+    <div class="flow-step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Clone the repo</div>
+        <div class="step-desc"><code>git clone https://github.com/yourusername/brained-flow.git</code></div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Run install.ps1</div>
+        <div class="step-desc">
+          Interactive. Asks for:<br>
+          • Cowork skills directory (default: <code>%APPDATA%\Claude\skills</code>)<br>
+          • Claude Code commands directory (default: <code>.\.claude\commands\</code>)<br>
+          • brain/ wiki path (optional — for sync setup)
+        </div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">Set up wiki sync</div>
+        <div class="step-desc">Ask Claude in Cowork: <em>"Help me set up wiki sync"</em> — the wiki-setup skill guides you through session key, ORG_ID, scripts, and autostart.</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-title">Start planning</div>
+        <div class="step-desc">Say: <em>"brain-plan: &lt;your task&gt;"</em> in Cowork, or <code>/brain-plan &lt;task&gt;</code> in Claude Code.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── REPO STRUCTURE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">Repository structure</div>
+  <div class="tree">
+    <span class="dir">brained-flow/</span><br>
+    &nbsp;&nbsp;<span class="file">README.md</span> &nbsp;<span class="cmt">— overview &amp; quick start</span><br>
+    &nbsp;&nbsp;<span class="file">flow.html</span> &nbsp;<span class="cmt">— this diagram</span><br>
+    &nbsp;&nbsp;<span class="file">install.ps1</span> &nbsp;<span class="cmt">— interactive installer</span><br>
+    &nbsp;&nbsp;<span class="file">LICENSE</span><br>
+    &nbsp;&nbsp;<span class="dir">skills/</span> &nbsp;<span class="cmt">— Cowork skills</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">brain-sync/</span> &nbsp;&nbsp;<span class="file">SKILL.md README.md LICENSE</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">wiki-setup/</span> &nbsp;&nbsp;<span class="file">SKILL.md README.md LICENSE</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">brain-plan/</span> &nbsp;&nbsp;<span class="file">SKILL.md README.md LICENSE</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">brain-run/</span> &nbsp;&nbsp;&nbsp;<span class="file">SKILL.md README.md LICENSE</span><br>
+    &nbsp;&nbsp;<span class="dir">commands/</span> &nbsp;<span class="cmt">— Claude Code / VS Code slash commands</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">brain-plan.md</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">brain-run.md</span>
+  </div>
+</div>
+
+<footer>
+  brained-flow · MIT License · © 2026 Mahmud Salakhetdinov
+</footer>
+
+</body>
+</html>

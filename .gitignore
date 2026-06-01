@@ -1,0 +1,23 @@
+# Session key — never commit
+~/.claude/claude-ai-session.key
+.claude/claude-ai-session.key
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
