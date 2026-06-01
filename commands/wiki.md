@@ -1,6 +1,6 @@
 ---
 description: >
-  Wiki для vitejs-vite-6hpxonsb: полный update-цикл или быстрый ctx-lookup.
+  Wiki для <your_project_slug>: полный update-цикл или быстрый ctx-lookup.
   /wiki → полный цикл (distill + scan + apply + sync).
   /wiki <тема> или /wiki --ctx <тема> → читать wiki по теме (graph-routing, экономия контекста).
   /wiki --status → актуальность .sync без записи.
@@ -8,8 +8,8 @@ description: >
   /wiki --plan → только синхронизировать активный план с git-изменениями.
 ---
 
-**WIKI_DIR:** `C:\Users\user\ВОблако\brain\projects\vitejs-vite-6hpxonsb`
-**MANIFEST:** `C:\Users\user\ВОблако\brain\projects\vitejs-vite-6hpxonsb\_manifest.json`
+**WIKI_DIR:** `<your_brain_wiki_dir>`
+**MANIFEST:** `<your_brain_wiki_dir>\_manifest.json`
 
 ---
 
@@ -35,7 +35,7 @@ description: >
 ### CTX-1 — Читать манифест
 
 ```
-Read: C:\Users\user\ВОблако\brain\projects\vitejs-vite-6hpxonsb\_manifest.json
+Read: <your_brain_wiki_dir>\_manifest.json
 ```
 
 ### CTX-2 — Резолвить тему → файлы
@@ -70,7 +70,7 @@ Read: C:\Users\user\ВОблако\brain\projects\vitejs-vite-6hpxonsb\_manifest
 ### CTX-3 — Читать файлы
 
 ```
-Read: C:\Users\user\ВОблако\brain\projects\vitejs-vite-6hpxonsb\<file>
+Read: <your_brain_wiki_dir>\<file>
 ```
 
 Если суммарный объём > 10k токенов → агрессивная фильтрация: читать только первые 2 файла.
@@ -94,7 +94,7 @@ Read: C:\Users\user\ВОблако\brain\projects\vitejs-vite-6hpxonsb\<file>
 
 ## ══ STATUS — проверить актуальность ══ {#status}
 
-Прочитать `C:\Users\user\ВОблако\brain\projects\vitejs-vite-6hpxonsb\.sync`.
+Прочитать `<your_brain_wiki_dir>\.sync`.
 
 ```bash
 git log -1 --format="%H %ci"
@@ -113,7 +113,7 @@ git log -1 --format="%H %ci"
 
 Только обработка `.raw_nuances.md` → `nuances.md`. Без git-сканирования, без субагента.
 
-Прочитать `C:\Users\user\ВОблако\brain\projects\vitejs-vite-6hpxonsb\.raw_nuances.md`.
+Прочитать `<your_brain_wiki_dir>\.raw_nuances.md`.
 
 Если пуст или не существует → вывести: `нет сырых нюансов`. Стоп.
 
@@ -212,7 +212,7 @@ git diff --stat HEAD
 
 ### UPDATE-2 — Вычислить дельту
 
-Прочитать `C:\Users\user\ВОблако\brain\projects\vitejs-vite-6hpxonsb\.sync`:
+Прочитать `<your_brain_wiki_dir>\.sync`:
 ```
 commit: <sha>
 date: <дата>
@@ -245,12 +245,12 @@ git log --oneline <sha>..HEAD -- src/ supabase/migrations/ src/types/ src/lib/
 - необычные type cast (`as unknown as`, `@ts-ignore`)
 - нестандартные API-вызовы с пояснением
 
-Если найдено → дописать в `C:\Users\user\ВОблако\brain\projects\vitejs-vite-6hpxonsb\solutions.md`.
+Если найдено → дописать в `<your_brain_wiki_dir>\solutions.md`.
 
 Спавн `Agent tool, subagent_type=Explore`. Передать дословно:
 
 ```
-Ты обновляешь wiki проекта (путь: C:\Users\user\ВОблако\brain\projects\vitejs-vite-6hpxonsb\) для React 19 + TypeScript + PixiJS + Supabase проекта.
+Ты обновляешь wiki проекта (путь: <your_brain_wiki_dir>\) для React 19 + TypeScript + PixiJS + Supabase проекта.
 
 ПРИНЦИП ДИСТИЛЛЯЦИИ (Karpathy LLM-wiki):
 Вопрос не "что здесь есть", а "что нужно знать через 3 месяца не читая код?":
@@ -274,7 +274,7 @@ PROVENANCE — помечай каждое нетривиальное утвер
 ИЗМЕНЁННЫЕ ФАЙЛЫ С ПОСЛЕДНЕГО WIKI-UPDATE:
 <вставь git log из UPDATE-2>
 
-ТЕКУЩИЙ КОНТЕНТ WIKI (путь: C:\Users\user\ВОблако\brain\projects\vitejs-vite-6hpxonsb\):
+ТЕКУЩИЙ КОНТЕНТ WIKI (путь: <your_brain_wiki_dir>\):
 - map.md
 - architecture.md
 - data.md

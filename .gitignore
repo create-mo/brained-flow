@@ -21,3 +21,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Publish script (personal, not needed by users)
+publish-to-github.ps1

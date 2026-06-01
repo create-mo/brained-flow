@@ -43,8 +43,9 @@ If sync stops working, the session key has likely expired — repeat the steps a
 
 | Project name | Project ID |
 |---|---|
-| VPSS | `019e7061-5272-747f-a294-3650d76e0f01` |
-| new claude abilities | `019e7085-ff9a-70bc-8f8e-2f3000d543d2` |
+| `<your-project-name>` | `<your-project-id>` |
+
+Find your Project ID in the claude.ai URL when viewing the project: `claude.ai/project/<project-id>`.
 
 ## Common tasks
 

@@ -7,10 +7,10 @@ description: Выполнить шаги активного плана из plan
 ## Путь к планам
 
 ```
-C:\Users\user\ВОблако\vitejs-vite-6hpxonsb\plans\
+<your_project_path>\plans\
 ```
 
-**WIKI_DIR:** `C:\Users\user\ВОблако\brain\projects\vitejs-vite-6hpxonsb`
+**WIKI_DIR:** `<your_brain_wiki_dir>`
 
 ## Режимы
 
@@ -82,7 +82,7 @@ grep -rl "🔄 В работе" plans/
 - `## Параллельные шаги`
 - Зависимости `⬆ После шага N`
 
-Если существует `C:\Users\user\ВОблако\brain\projects\vitejs-vite-6hpxonsb\known-issues.md` — прочитать, выделить записи с файлами/тегами из плана:
+Если существует `<your_brain_wiki_dir>\known-issues.md` — прочитать, выделить записи с файлами/тегами из плана:
 ```
 ⚠️ Известные проблемы:
   - #supabase: NULL в поле X требует явного приведения
@@ -137,7 +137,7 @@ FROZEN в этом шаге: нет / 🔒 <что под риском>
 
 ```
 Ты работаешь в проекте: React 19 + TypeScript + Vite 7 + PixiJS + Supabase
-Путь: C:\Users\user\ВОблако\vitejs-vite-6hpxonsb
+Путь: <your_project_path>
 
 КРИТИЧНО:
 - Не менять computeConcentricArcLayout (src/utils/layout.ts)
@@ -229,7 +229,7 @@ git diff HEAD -- <файлы> | grep -i "positionCardAwayFromConnections\|Mobile
 
 **solutions.md** — если есть непустые записи `**Для solutions.md:**`:
 
-Дописать в `C:\Users\user\ВОблако\brain\projects\vitejs-vite-6hpxonsb\solutions.md`:
+Дописать в `<your_brain_wiki_dir>\solutions.md`:
 ```markdown
 ---
 ## <YYYY-MM-DD> | <plans/filename.md> | Шаг N «название»
@@ -249,7 +249,7 @@ git diff HEAD -- <файлы> | grep -i "positionCardAwayFromConnections\|Mobile
 
 **.raw_nuances.md** — если есть непустые записи `**Для .raw_nuances.md:**`:
 
-Дописать в `C:\Users\user\ВОблако\brain\projects\vitejs-vite-6hpxonsb\.raw_nuances.md`:
+Дописать в `<your_brain_wiki_dir>\.raw_nuances.md`:
 ```markdown
 ## <YYYY-MM-DD> | <plans/filename.md> | Шаг N «название»
 
