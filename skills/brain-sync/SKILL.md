@@ -47,6 +47,15 @@ If sync stops working, the session key has likely expired — repeat the steps a
 
 Find your Project ID in the claude.ai URL when viewing the project: `claude.ai/project/<project-id>`.
 
+> **⚠️ Critical — naming must match exactly across all surfaces:**
+> The project name must be identical in:
+> - `claude.ai` — the Project name as shown in the sidebar
+> - `Claude Cowork` — the folder/project name in Cowork
+> - `wiki-push.py` / `wiki-pull.py` — the `PROJECT_NAME` variable in the scripts
+>
+> A mismatch means files push to the wrong project or sync silently fails.
+> When helping the user set up, always verify all three match before proceeding.
+
 ## Common tasks
 
 **Push changes manually:**

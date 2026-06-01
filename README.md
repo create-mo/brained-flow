@@ -30,30 +30,31 @@ Plan a task → brain-plan loads relevant wiki, creates plans/<date>_<slug>.md
 
 ### 1. Clone the repo
 
-```powershell
+```bash
 git clone https://github.com/create-mo/brained-flow.git
 cd brained-flow
 ```
 
-### 2. Install skills (Cowork)
+### 2. Run the installer for your OS
 
-Run the install script:
-
+**Windows:**
 ```powershell
 .\install.ps1
 ```
 
-Or manually copy `skills/*` folders to your Cowork skills directory.
-
-### 3. Install commands (Claude Code / VS Code)
-
-Copy `commands/*.md` to your project's `.claude/commands/` folder:
-
-```powershell
-Copy-Item commands\*.md .\.claude\commands\
+**macOS:**
+```bash
+chmod +x install-macos.sh && ./install-macos.sh
+# Requires: brew install fswatch
 ```
 
-### 4. Set up brain/ sync
+**Linux:**
+```bash
+chmod +x install-linux.sh && ./install-linux.sh
+# Requires: sudo apt install inotify-tools
+```
+
+### 3. Set up brain/ sync
 
 Follow `skills/wiki-setup/SKILL.md` — or ask Claude:
 *"Help me set up the wiki sync system"*
@@ -61,10 +62,16 @@ Follow `skills/wiki-setup/SKILL.md` — or ask Claude:
 ## Requirements
 
 - Python 3.x
-- Windows (wiki-watch.ps1 uses PowerShell FileSystemWatcher)
 - claude.ai account with Projects enabled
 - Claude Cowork (for Cowork skills)
 - Claude Code CLI (for slash commands)
+
+**OS-specific:**
+| OS | File watcher |
+|----|-------------|
+| Windows | built-in (PowerShell FileSystemWatcher) |
+| macOS | `brew install fswatch` |
+| Linux | `sudo apt install inotify-tools` |
 
 ## Security note
 

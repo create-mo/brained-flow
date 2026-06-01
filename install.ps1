@@ -106,6 +106,16 @@ if ($brainDir -ne "") {
     }
 }
 
+# ── Naming warning ───────────────────────────────────────────────────────────
+
+Write-Host ""
+Write-Host "  ─────────────────────────────────────────" -ForegroundColor DarkGray
+Write-Host "  IMPORTANT: Project name must match exactly in all three places:" -ForegroundColor Yellow
+Write-Host "    1. claude.ai        -> Project name in the sidebar" -ForegroundColor White
+Write-Host "    2. Claude Cowork    -> Folder/project name in Cowork" -ForegroundColor White
+Write-Host "    3. wiki-push.py     -> PROJECT_NAME variable in the script" -ForegroundColor White
+Write-Host "  A mismatch causes silent sync failures." -ForegroundColor DarkGray
+
 # ── Done ──────────────────────────────────────────────────────────────────────
 
 Write-Host ""
