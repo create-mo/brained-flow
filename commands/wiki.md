@@ -1,6 +1,6 @@
 ---
 description: >
-  Wiki для <your_project_slug>: полный update-цикл или быстрый ctx-lookup.
+  Wiki для проекта: полный update-цикл или быстрый ctx-lookup.
   /wiki → полный цикл (distill + scan + apply + sync).
   /wiki <тема> или /wiki --ctx <тема> → читать wiki по теме (graph-routing, экономия контекста).
   /wiki --status → актуальность .sync без записи.
@@ -8,251 +8,191 @@ description: >
   /wiki --plan → только синхронизировать активный план с git-изменениями.
 ---
 
-**WIKI_DIR:** `<your_brain_wiki_dir>`
-**MANIFEST:** `<your_brain_wiki_dir>\_manifest.json`
+<!--
+  НАСТРОЙКА ПОД СВОЙ ПРОЕКТ
+  ══════════════════════════
+  Замени все блоки [НАСТРОИТЬ] перед использованием:
+  1. WIKI_DIR — абсолютный путь к твоей папке brain/
+  2. Топик-маппинги (CTX-2) — слова из твоего стека
+  3. Файлы wiki — список твоих wiki-файлов
+  4. Стек в промпте Explore-субагента
+  5. Пути к исходникам (src/, migrations/ и т.д.)
+-->
+
+**WIKI_DIR:** `<your_brain_wiki_dir>`  ← [НАСТРОИТЬ]
+**MANIFEST:** `<your_brain_wiki_dir>/_manifest.json`
 
 ---
 
 ## Шаг 0 — Определить режим
 
-Проверить `$ARGUMENTS`:
-
-| Вызов | Режим | Переход |
-|---|---|---|
-| `/wiki` (пусто) | **update** — полный цикл | → [UPDATE](#update) |
-| `/wiki <слово>` (не начинается с `--`) | **ctx** — lookup по теме | → [CTX](#ctx) |
-| `/wiki --ctx <тема>` | **ctx** — явный lookup | → [CTX](#ctx) |
-| `/wiki --status` | **status** — проверить .sync | → [STATUS](#status) |
-| `/wiki --nuances` | **nuances** — только нюансы | → [NUANCES](#nuances) |
-| `/wiki --plan` | **plan** — только матч плана | → [PLAN](#plan) |
+| Вызов | Режим |
+|---|---|
+| `/wiki` (пусто) | **update** — полный цикл |
+| `/wiki <слово>` | **ctx** — lookup по теме |
+| `/wiki --ctx <тема>` | **ctx** — явный lookup |
+| `/wiki --status` | **status** — проверить .sync |
+| `/wiki --nuances` | **nuances** — только нюансы |
+| `/wiki --plan` | **plan** — только матч плана |
 
 ---
 
-## ══ CTX — lookup по теме ══ {#ctx}
+## ══ CTX — lookup по теме ══
 
-**Цель:** экономия контекста (~60-70%) через graph-augmented retrieval — читать только 2-3 релевантных файла вместо всей wiki.
+**Цель:** загрузить только 2-3 релевантных файла вместо всей wiki (~60-70% экономии контекста).
 
 ### CTX-1 — Читать манифест
 
 ```
-Read: <your_brain_wiki_dir>\_manifest.json
+Read: <your_brain_wiki_dir>/_manifest.json
 ```
 
 ### CTX-2 — Резолвить тему → файлы
 
-Тема = `$ARGUMENTS` без `--ctx` (trim пробелов, lowercase).
-Если передано несколько слов → проверить каждое отдельно, объединить уникальные файлы.
+Тема = `$ARGUMENTS` без `--ctx` (trim, lowercase).
 
-Приоритет поиска в `manifest.topics`:
+Поиск в `manifest.topics`:
 1. Exact match
-2. Substring match (тема содержится в ключе или ключ содержится в теме)
+2. Substring match
 3. Fallback → `manifest.default_fallback` (обычно `["map.md"]`)
 
-Ограничение: ≤3 файла (по `routing_notes.context_budget`).
-Если у найденного файла есть `reads_before` в frontmatter → предварить им (обычно `map.md`).
+Лимит: ≤3 файла. Если у файла есть `reads_before` → предварить им.
 
-**Быстрая справка тема → файлы:**
+**Топик-маппинги [НАСТРОИТЬ под свой стек]:**
 
-| Тема | Файлы |
-|---|---|
-| `bugs` / `issues` / `solutions` | `known-issues.md`, `solutions.md` |
-| `audio` / `synthesis` / `player` | `architecture.md`, `data.md`, `glossary.md` |
-| `vexflow` / `score` / `print` | `map.md`, `glossary.md`, `known-issues.md` |
-| `architecture` / `rendering` / `pixi` / `webgl` | `architecture.md`, `map.md` |
-| `data` / `supabase` / `schema` / `migrations` | `data.md`, `map.md` |
-| `minimax` / `wav` / `music21` | `known-issues.md` |
-| `connections` / `links` / `influence` | `data.md`, `glossary.md` |
-| `medusa` / `effects` / `acoustic` | `map.md`, `glossary.md` |
-| `layout` / `geometry` / `coordinates` / `wheel` | `architecture.md`, `glossary.md` |
-| `eras` / `colors` / `lod` | `architecture.md`, `glossary.md` |
-| `typescript` / `react` / `eslint` | `known-issues.md` |
+```
+[Замени примеры на термины своего проекта]
+
+auth / login / session / token   → auth.md
+database / migration / schema    → data.md
+api / endpoint / route           → api.md
+render / component / ui / style  → frontend.md
+deploy / ci / build / docker     → devops.md
+test / spec / coverage           → testing.md
+bugs / issues / errors           → known-issues.md
+```
 
 ### CTX-3 — Читать файлы
 
 ```
-Read: <your_brain_wiki_dir>\<file>
+Read: <your_brain_wiki_dir>/<file>
 ```
 
-Если суммарный объём > 10k токенов → агрессивная фильтрация: читать только первые 2 файла.
+Если суммарно > 10k токенов → читать только первые 2 файла.
 
 ### CTX-4 — Ответить
 
 ```
 **Тема:** <тема>
-**Файлы:** <список прочитанных>
+**Файлы:** <список>
 
-[Содержимое — только релевантная информация по теме]
-```
-
-Если файлов > 3 — предупредить:
-```
-**Внимание:** найдено <N> файлов. Читаю только <первые 2>.
-Остальные: <список>. Если нужны — запроси явно.
+[Содержимое — только релевантная информация]
 ```
 
 ---
 
-## ══ STATUS — проверить актуальность ══ {#status}
+## ══ STATUS — проверить актуальность ══
 
-Прочитать `<your_brain_wiki_dir>\.sync`.
+Прочитать `<your_brain_wiki_dir>/.sync`.
 
 ```bash
 git log -1 --format="%H %ci"
 ```
 
-Сравнить с commit в `.sync`. Показать:
+Сравнить commit в `.sync` с HEAD. Показать:
 - Последний wiki-update: дата
-- Коммитов с тех пор: N (`git log <sync-sha>..HEAD --oneline -- src/ | wc -l`)
-- Статус: ✅ актуальна / ⚠️ устарела (>0 коммитов)
+- Коммитов с тех пор: N
+- Статус: ✅ актуальна / ⚠️ устарела
 
 Никаких записей, только отчёт.
 
 ---
 
-## ══ NUANCES — только нюансы ══ {#nuances}
+## ══ NUANCES — только нюансы ══
 
-Только обработка `.raw_nuances.md` → `nuances.md`. Без git-сканирования, без субагента.
+Прочитать `<your_brain_wiki_dir>/.raw_nuances.md`.
 
-Прочитать `<your_brain_wiki_dir>\.raw_nuances.md`.
+Если пуст → `нет сырых нюансов`. Стоп.
 
-Если пуст или не существует → вывести: `нет сырых нюансов`. Стоп.
-
-Формат сырых записей от `/brain-run` агентов:
+Формат записей от `/brain-run`:
 ```markdown
 ## <YYYY-MM-DD> | <plans/filename.md> | Шаг N «название»
 
 **Проблема/нюанс:** <описание>
 **Контекст:** <файл/паттерн>
 **Решение/наблюдение:** <что помогло>
-**Файлы:** <src/path/file.ts:строка>
+**Файлы:** <path/file:строка>
 **Теги:** #тег1 #тег2
 ```
 
-Для каждой записи → определить раздел по тегам → записать компактно в `nuances.md` → после обработки очистить `.raw_nuances.md`.
+Для каждой записи → определить раздел по тегам → записать компактно в `nuances.md` → очистить `.raw_nuances.md`.
 
-Целевые разделы: `## InMapMedusa`, `## AudioPlayerBlock`, `## VexScore`, `## Кэширование`, `## Инварианты` (или создать новый по контексту).
+**Целевые разделы [НАСТРОИТЬ]:** создай разделы под свой стек.
 
 Компактный формат:
 ```markdown
 ### Короткое название
-- **Файл:** `src/path/file.ts`
+- **Файл:** `path/to/file`
 - **Нюанс:** однострочное объяснение "почему это важно"
 ```
 
-Если похожая запись уже есть → смёрджить, не дублировать.
-
 ---
 
-## ══ PLAN — только матч плана ══ {#plan}
-
-Только синхронизация активного плана с git-изменениями. Без wiki-сканирования, без субагента.
+## ══ PLAN — только матч плана ══
 
 ```bash
 git status --short
 git diff --stat HEAD
 ```
 
-`mcp__ide__getDiagnostics` — TS/ESLint ошибки в изменённых файлах.
+Найти активный план: `Grep("🔄 В работе", "plans/*.md", files_with_matches)`.
 
-Найти активный план: `Grep("🔄 В работе", "plans/*.md", output_mode: "files_with_matches")`.
-
-Если найден — для каждого изменённого файла матч с полем **Файлы** в шагах плана:
+Матч изменённых файлов с полем **Файлы** в шагах:
 - изменён + нет ошибок → `[x] Выполнено`
 - изменён + есть ошибки → `[~] Ошибки: <список>`
-- не тронут → `[ ]` без изменений
+- не тронут → `[ ]`
 
-Обновить план-файл: чекбоксы + `## Лог выполнения`:
-```
-**<дата> /wiki --plan** — Шаг N: <файлы>, <итог>
-```
-
-Изменения вне плана → `внеплановые: <список>` в лог.
-Если все `[x]` → `🔄 В работе` → `✅ Выполнено`.
-
-`TaskList` → `[план]`-таски выполненных шагов → `TaskUpdate` completed.
-
-Отчёт: какие шаги отмечены, что вне плана.
-
----
-
-## ══ UPDATE — полный цикл ══ {#update}
-
-**Цель:** синхронизировать план с кодом, дистиллировать сырые нюансы, актуализировать wiki по git delta.
-**Методология:** сначала нюансы (`.raw_nuances.md` → `nuances.md`), потом delta-scan через Explore-субагент. Главный контекст не тратится на сканирование кода.
-
----
-
-### UPDATE-1 — Матч прямых изменений → активный план
-
-```bash
-git status --short
-git diff --stat HEAD
-```
-
-`mcp__ide__getDiagnostics` — TS/ESLint ошибки в изменённых файлах.
-
-Найти активный план: `Grep("🔄 В работе", "plans/*.md", output_mode: "files_with_matches")`.
-
-Если найден → матч изменённых файлов с шагами плана (поле **Файлы**):
-- изменён + нет ошибок → `[x] Выполнено`
-- изменён + есть ошибки → `[~] Ошибки: <список>`
-- не тронут → `[ ]` без изменений
-
-Обновить план-файл: чекбоксы + `## Лог выполнения`:
-```
-**<дата> /wiki** — Шаг N: <файлы>, <итог>
-```
-
-Изменения вне плана → `внеплановые: <список>`.
-Если все `[x]` → `🔄 В работе` → `✅ Выполнено`.
-
+Обновить план-файл + лог. Если все `[x]` → `✅ Выполнено`.
 `TaskList` → `[план]`-таски → `TaskUpdate` completed.
 
 ---
 
+## ══ UPDATE — полный цикл ══
+
+**Цель:** синхронизировать план с кодом, дистиллировать нюансы, актуализировать wiki по git delta.
+
+### UPDATE-1 — Матч прямых изменений → план
+
+Выполнить логику PLAN-режима (см. выше).
+
 ### UPDATE-2 — Вычислить дельту
 
-Прочитать `<your_brain_wiki_dir>\.sync`:
+Прочитать `<your_brain_wiki_dir>/.sync`:
 ```
 commit: <sha>
 date: <дата>
 ```
 
-Если файл существует — дельта от снимка:
+Дельта от снимка:
 ```bash
-git log --oneline <sha>..HEAD -- src/ supabase/migrations/ src/types/ src/lib/
+git log --oneline <sha>..HEAD -- <your_src_dirs>
+# [НАСТРОИТЬ — пути к исходникам, например: src/ lib/ app/]
 ```
 
-Если файла нет → **первый запуск**, полный скан `src/`.
-
-Если `git log` вернул пустой список → `wiki актуальна, нет изменений с <дата>`. Стоп.
-
----
+Если файл не существует → **первый запуск**, полный скан.
+Если `git log` пустой → `wiki актуальна`. Стоп.
 
 ### UPDATE-3 — Обработка сырых нюансов
 
-*Выполнить логику NUANCES-режима здесь (не вызывать отдельно).*
+Выполнить логику NUANCES-режима (см. выше). Если `.raw_nuances.md` пуст — пропустить.
 
-Прочитать `.raw_nuances.md`. Если пуст — пропустить.
-Дистиллировать в `nuances.md`, очистить `.raw_nuances.md`.
-
----
-
-### UPDATE-4 — Автономный сбор решений + спавн Explore-субагента
-
-Перед субагентом — автономно просмотреть `git diff HEAD -- src/` на паттерны нетривиальных решений:
-- workaround-комментарии (`// TODO`, `// HACK`, `// workaround`, `// fix`)
-- необычные type cast (`as unknown as`, `@ts-ignore`)
-- нестандартные API-вызовы с пояснением
-
-Если найдено → дописать в `<your_brain_wiki_dir>\solutions.md`.
-
-Спавн `Agent tool, subagent_type=Explore`. Передать дословно:
+### UPDATE-4 — Спавн Explore-субагента
 
 ```
-Ты обновляешь wiki проекта (путь: <your_brain_wiki_dir>\) для React 19 + TypeScript + PixiJS + Supabase проекта.
+Ты обновляешь wiki проекта (путь: <your_brain_wiki_dir>/) для проекта:
+[НАСТРОИТЬ — стек, например: Python + FastAPI + PostgreSQL + React]
 
-ПРИНЦИП ДИСТИЛЛЯЦИИ (Karpathy LLM-wiki):
+ПРИНЦИП ДИСТИЛЛЯЦИИ:
 Вопрос не "что здесь есть", а "что нужно знать через 3 месяца не читая код?":
 - Архитектурные решения и ПОЧЕМУ они такие
 - Паттерны, которые нигде явно не задокументированы
@@ -260,122 +200,101 @@ git log --oneline <sha>..HEAD -- src/ supabase/migrations/ src/types/ src/lib/
 - Что можно легко сломать и почему
 
 НЕ дистиллируй:
-- Очевидные file listings — код сам это говорит
+- Очевидные file listings
 - Мелкие багфиксы без архитектурного следствия
 - Boilerplate и конфиги
 
 PROVENANCE — помечай каждое нетривиальное утверждение:
 - ^[extracted] — буквально видно в коде/комменте
-- ^[inferred] — вывод из паттернов кода (не написано явно)
+- ^[inferred] — вывод из паттернов кода
 - ^[critical] — инвариант, нарушение которого ломает систему
-
----
 
 ИЗМЕНЁННЫЕ ФАЙЛЫ С ПОСЛЕДНЕГО WIKI-UPDATE:
 <вставь git log из UPDATE-2>
 
-ТЕКУЩИЙ КОНТЕНТ WIKI (путь: <your_brain_wiki_dir>\):
-- map.md
+ТЕКУЩИЙ КОНТЕНТ WIKI:
+[НАСТРОИТЬ — список твоих wiki-файлов, например:]
+- map.md        (карта файлов проекта)
 - architecture.md
-- data.md
+- data.md       (схема БД, типы)
 - glossary.md
+- known-issues.md
 
 ЧТО НУЖНО НАЙТИ:
-1. Файлы в src/ которых нет в map.md (новые) → прочитать первые 40 строк, определить назначение
-2. Записи в map.md для файлов которых больше нет (устарели)
-3. Изменения в src/types/, src/lib/supabase.ts → обновить data.md
-4. Новые суперважные паттерны в src/pixi/, src/hooks/, src/utils/ (>100 строк, нетривиальные) → architecture.md
-5. Новые миграции в supabase/migrations/ → data.md
-6. Новые термины в коде которых нет в glossary.md
+1. Новые файлы в src/ которых нет в map.md → прочитать первые 40 строк
+2. Записи в map.md для файлов которых больше нет
+3. Изменения в типах/схеме → обновить data.md
+4. Новые важные паттерны → architecture.md
+5. Новые миграции → data.md
+6. Новые термины в коде → glossary.md
+[НАСТРОИТЬ — добавь специфичные для своего стека правила]
 
 ФОРМАТ ОТЧЁТА (под 500 слов):
 
 ## DELTA
 
 ### ADD to map.md
-- `src/path/file.ts`: <назначение, 1 строка> ^[extracted]
+- `path/file`: <назначение> ^[extracted]
 
 ### REMOVE from map.md
-- `src/path/old.ts`: больше не существует
+- `path/old`: больше не существует
 
-### UPDATE map.md
-- `src/path/file.ts`: <что изменилось в роли> ^[inferred]
-
-### ADD to architecture.md
+### UPDATE architecture.md
 <секция: название паттерна>
-<2-4 предложения: что это, почему так, что ломается если нарушить> ^[critical если применимо]
-
-### UPDATE data.md
-- table.column: <added/removed/changed>
-- migration NNN_xxx.sql: <что меняет в схеме>
+<2-4 предложения> ^[critical если применимо]
 
 ### ADD to glossary.md
-- `Термин`: определение ^[extracted/inferred]
+- `Термин`: определение ^[inferred]
 
 ### НИЧЕГО НЕ МЕНЯТЬ
-<список стабильных разделов — не трогать>
+<стабильные разделы>
 ```
-
----
 
 ### UPDATE-5 — Применить правки
 
-По отчёту субагента — `Edit` (точечные правки) или `Write` (секция полностью пересоздаётся).
+По отчёту субагента — `Edit` (точечные) или `Write` (секция пересоздаётся).
 
 Правила:
-- Язык — русский, тон и структура существующих файлов сохраняются
-- `^[inferred]` и `^[critical]` — оставлять в тексте wiki как есть
-- Если появилась целая новая подсистема (>5 файлов одной темы) → предложить пользователю создать отдельный wiki-файл, не делать молча
-- Не трогать `README.md` если структура wiki не менялась
+- Язык и стиль существующих файлов сохранять
+- `^[inferred]` и `^[critical]` оставлять в тексте wiki
+- Новая подсистема (>5 файлов одной темы) → предложить пользователю создать отдельный wiki-файл
 
-**Обязательно: frontmatter + wikilinks**
+**Обязательно: frontmatter**
 
-Каждый wiki-файл должен иметь YAML-шапку:
 ```yaml
 ---
-tags: [<теги через запятую>]
+tags: [<теги>]
 summary: <1-2 предложения, ≤150 символов>
 updated: <YYYY-MM-DD>
 ---
 ```
 
-⚠️ **Не писать `related:` в frontmatter** — Obsidian создаёт узлы-призраки. Связи только через `[[wikilinks]]` в теле (секция `## Связи`).
+При обновлении файла → обновить `updated:`.
 
-Теги из: `map` `architecture` `data` `schema` `audio` `rendering` `pixi` `react` `layout` `geometry` `glossary` `terms` `migrations` `fallback` `visual`
-
-При обновлении файла → обновить `updated:` на текущую дату.
-
----
+Связи между файлами — только через `[[wikilinks]]` в теле (секция `## Связи`), не в frontmatter.
 
 ### UPDATE-5б — Обновить known-issues.md из solutions.md
 
-Если `solutions.md` существует и имеет новые записи (после последней даты в `known-issues.md`):
-
-Дистиллировать: сгруппировать по тегам, убрать дубли. Обновить/создать `known-issues.md`:
+Если `solutions.md` имеет новые записи после последней даты в `known-issues.md`:
 
 ```markdown
 ---
-tags: [known-issues, solutions, blockers]
-summary: Дистиллированные проблемы и решения. Читается /brain-plan и агентами /brain-run.
+tags: [known-issues, solutions]
+summary: Дистиллированные проблемы и решения.
 updated: <YYYY-MM-DD>
 ---
 
 # Known Issues & Solutions
 
-> Дистиллят из `solutions.md`. Обновляется при каждом `/wiki`.
-> **НЕ редактировать вручную** — источник правды: `solutions.md`.
+> Дистиллят из solutions.md. Обновляется при каждом /wiki.
+> НЕ редактировать вручную — источник правды: solutions.md.
 
-## #typescript
+## #тег1
 ...
 
 ## Связи
-
-[[solutions]] · [[architecture]] · [[data]]
+[[solutions]] · [[architecture]]
 ```
-
-Правила: одна проблема = одна запись; группировать по тегам (#typescript, #pixi, #supabase, #layout, #audio, #react); только суть + файл.
-
----
 
 ### UPDATE-6 — Обновить .sync + CHANGELOG
 
@@ -386,7 +305,7 @@ git log -1 --format="%ci"
 
 Перезаписать `.sync`:
 ```
-commit: <новый HEAD sha>
+commit: <HEAD sha>
 date: <YYYY-MM-DD>
 note: /wiki <YYYY-MM-DD>
 ```
@@ -395,20 +314,13 @@ note: /wiki <YYYY-MM-DD>
 ```markdown
 ## <YYYY-MM-DD> /wiki
 
-**Нюансы:** <N обработано из .raw_nuances.md>
-**Изменено:** <N ADD, M UPDATE, K REMOVE wiki-файлов>
-**Затронутые файлы:** map.md | architecture.md | data.md | glossary.md | nuances.md
-**Триггер:** <кратко — что изменилось в src/ после прошлого /wiki>
-**Distilled:** <самое важное знание этой сессии — 1 предложение>
+**Нюансы:** <N из .raw_nuances.md>
+**Изменено:** <N ADD, M UPDATE, K REMOVE>
+**Затронутые файлы:** <список>
+**Триггер:** <что изменилось в src/>
+**Distilled:** <главное знание сессии — 1 предложение>
 ```
-
----
 
 ### UPDATE-7 — Отчёт
 
-4–5 предложений:
-- Нюансы: сколько обработано из `.raw_nuances.md`
-- Что добавлено в wiki (новые файлы/паттерны)
-- Что обновлено (schema, роли файлов)
-- Что удалено
-- Главное знание которое теперь в wiki и раньше не было (distilled insight)
+4-5 предложений: нюансы, добавлено, обновлено, удалено, главное distilled знание.

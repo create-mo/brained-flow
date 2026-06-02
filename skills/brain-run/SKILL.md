@@ -3,7 +3,7 @@ name: brain-run
 description: >
   Executes the active plan from plans/ using subagents, with wiki context injected
   per step. Use this skill when the user wants to execute a plan, run steps, or
-  continue work. Triggers on: "run the plan", "execute", "rabota", "start working",
+  continue work. Triggers on: "run the plan", "execute", "start working",
   "do the steps", "run step N", "выполни план", "запускай", "работа по плану".
   Always use brain-plan first to create the plan, then brain-run to execute it.
 ---
@@ -18,7 +18,7 @@ Executes the active plan step by step using subagents, grounded in wiki context.
 2. For each pending step — load `/wiki <topic>` + relevant `known-issues.md` entries
 3. Show execution graph, wait for user confirmation
 4. Spawn subagents (parallel where possible, sequential where required)
-5. Verify results (TypeScript/lint diagnostics, git diff)
+5. Verify results using the project's linter/type-checker/test suite
 6. Save findings to `solutions.md` and `known-issues.md`
 7. Update plan file statuses
 
@@ -38,7 +38,10 @@ For each step, agents report back:
 - **For .raw_nuances.md** — architectural invariants, non-obvious patterns
 
 Append these to the project wiki immediately after the step completes.
-wiki-push runs automatically via wiki-watch (or run manually: `python wiki-push.py`).
+
+wiki-push runs automatically via wiki-watch if it's running. If not, push manually:
+- Windows: `python wiki-push.py` (from brain/ folder)
+- macOS/Linux: `python3 wiki-push.py` (from brain/ folder)
 
 ## When a step is blocked
 
@@ -52,3 +55,13 @@ Mark `[!]`, surface the blocker clearly, suggest:
 | `brain-run` | All pending steps of active plan |
 | `brain-run step 2 3` | Only steps 2 and 3 |
 | `brain-run check` | Credit direct edits made outside brain-run |
+
+## Verification
+
+After each step, run the appropriate check for your stack:
+- TypeScript: `npx tsc --noEmit`
+- Python: `python -m pytest` / `ruff check .`
+- Rust: `cargo check`
+- Go: `go build ./...`
+
+Configure the check command in `commands/brain-run.md`.

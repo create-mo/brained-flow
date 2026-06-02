@@ -3,7 +3,7 @@ name: brain-plan
 description: >
   Creates a detailed step-by-step execution plan for a task, using the project's wiki
   as context. Use this skill when the user wants to plan work, break a task into steps,
-  or prepare before executing. Triggers on: "plan this", "create a plan", "rasplan",
+  or prepare before executing. Triggers on: "plan this", "create a plan",
   "break this into steps", "what's the plan for", "plan before we start",
   "планирование", "составь план", "разбей на шаги".
   Always use this skill BEFORE brain-run — plan first, execute second.
@@ -19,7 +19,7 @@ Before any non-trivial task. brain-plan → brain-run is the standard flow.
 
 ## What it does
 
-1. Extracts the task topic and calls `/wiki <topic>` to load only relevant wiki files (saves ~62% context vs loading all wiki)
+1. Extracts the task topic and calls `/wiki <topic>` to load only relevant wiki files (saves ~60% context vs loading all wiki)
 2. Checks `known-issues.md` for relevant blockers
 3. Spawns a Plan agent with wiki context
 4. Creates `plans/<YYYY-MM-DD>_<slug>.md` with steps, files, criteria, parallelism
@@ -40,7 +40,7 @@ Before any non-trivial task. brain-plan → brain-run is the standard flow.
 ## Steps
 
 ### Step 1 — <name>
-- **Agent:** <who executes>
+- **Agent:** general-purpose
 - **Files:** <list>
 - **Result:** <what changes>
 - **Check:** <how to verify>
@@ -55,17 +55,20 @@ Before any non-trivial task. brain-plan → brain-run is the standard flow.
 ## Execution log
 ```
 
-## Wiki topic keywords
+## Topic keywords
 
-Use these to extract the topic from the task description before calling `/wiki`:
+The `/brain-plan` command extracts a topic keyword from the task description before calling `/wiki`.
+The keyword-to-file mapping lives in `commands/brain-plan.md` and should be customized per project.
 
+Default pattern (adapt to your stack):
 ```
-vexflow, score, print → vexflow
-audio, synth, player → audio
-pixi, render, webgl → pixi
-supabase, database → supabase
-layout, geometry → layout
-bugs, issues → bugs
+auth, login, session    → auth
+database, migration     → database
+api, endpoint           → api
+render, component, ui   → frontend
+deploy, build, ci       → devops
+test, spec              → testing
+bugs, issues            → known-issues.md
 ```
 
 ## Output
