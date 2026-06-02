@@ -24,3 +24,6 @@ Thumbs.db
 
 # Publish script (personal, not needed by users)
 publish-to-github.ps1
+
+# Personal notes
+README.ru.md

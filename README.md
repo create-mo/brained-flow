@@ -59,6 +59,29 @@ chmod +x install-linux.sh && ./install-linux.sh
 Follow `skills/wiki-setup/SKILL.md` — or ask Claude:
 *"Help me set up the wiki sync system"*
 
+### 4. Customize commands for your project
+
+The slash commands `/brain-plan`, `/brain-run`, and `/wiki` are templates — they need to be adapted to your stack before use.
+
+Open each file and replace the `[НАСТРОИТЬ]` / `[CUSTOMIZE]` blocks:
+
+| File | What to fill in |
+|------|----------------|
+| `commands/brain-plan.md` | Your tech stack, critical invariants, topic → wiki file mappings |
+| `commands/brain-run.md` | Your stack, critical invariants, verification command (`tsc`, `pytest`, `cargo check`, etc.) |
+| `commands/wiki.md` | Paths to your source dirs, your wiki file names, topic → file mappings |
+
+**Example — topic mappings for a Django + React project:**
+```
+auth / login / session      → auth.md
+models / migration / orm    → data.md
+api / views / serializer    → api.md
+components / hooks / styles → frontend.md
+celery / worker / task      → async.md
+```
+
+Copy `commands/` into your project's `.claude/commands/` folder (the installer does this automatically).
+
 ## Requirements
 
 - Python 3.x
