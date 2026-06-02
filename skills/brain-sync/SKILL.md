@@ -48,6 +48,20 @@ def get_session_key():
         sys.exit(1)
     return open(SESSION_KEY_FILE).read().strip()
 
+def check_session_key(session_key):
+    """Validate session key before doing anything — fail loud, not silent."""
+    url = "https://claude.ai/api/auth/session"
+    req = urllib.request.Request(url, headers={"Cookie": f"sessionKey={session_key}", "User-Agent": "Mozilla/5.0"})
+    try:
+        urllib.request.urlopen(req)
+    except urllib.error.HTTPError as e:
+        if e.code in (401, 403):
+            print("ERROR: Session key is expired or invalid.")
+            print("Fix:   F12 → Application → Cookies → claude.ai → sessionKey")
+            print(f"Save:  echo 'YOUR_KEY' > {SESSION_KEY_FILE}")
+            sys.exit(1)
+        raise
+
 def get_project_id(session_key):
     url = "https://claude.ai/api/organizations"
     req = urllib.request.Request(url, headers={"Cookie": f"sessionKey={session_key}", "User-Agent": "Mozilla/5.0"})
@@ -76,9 +90,14 @@ def push_files(session_key, org_id, project_id):
             urllib.request.urlopen(req)
             print(f"  OK  {name}")
         except urllib.error.HTTPError as e:
+            if e.code in (401, 403):
+                print("ERROR: Session key expired mid-push. Stopping.")
+                print(f"Fix:   refresh key, then re-run wiki-push.py")
+                sys.exit(1)
             print(f"  ERR {name}: {e}")
 
 key = get_session_key()
+check_session_key(key)
 org_id, proj_id = get_project_id(key)
 push_files(key, org_id, proj_id)
 print("Done.")
@@ -97,6 +116,19 @@ def get_session_key():
         print(f"Session key not found at {SESSION_KEY_FILE}")
         sys.exit(1)
     return open(SESSION_KEY_FILE).read().strip()
+
+def check_session_key(session_key):
+    url = "https://claude.ai/api/auth/session"
+    req = urllib.request.Request(url, headers={"Cookie": f"sessionKey={session_key}", "User-Agent": "Mozilla/5.0"})
+    try:
+        urllib.request.urlopen(req)
+    except urllib.error.HTTPError as e:
+        if e.code in (401, 403):
+            print("ERROR: Session key is expired or invalid.")
+            print("Fix:   F12 → Application → Cookies → claude.ai → sessionKey")
+            print(f"Save:  echo 'YOUR_KEY' > {SESSION_KEY_FILE}")
+            sys.exit(1)
+        raise
 
 def get_project_id(session_key):
     url = "https://claude.ai/api/organizations"
@@ -124,6 +156,7 @@ def pull_files(session_key, org_id, project_id):
         print(f"  OK  {doc['file_name']}")
 
 key = get_session_key()
+check_session_key(key)
 org_id, proj_id = get_project_id(key)
 pull_files(key, org_id, proj_id)
 print("Done.")
