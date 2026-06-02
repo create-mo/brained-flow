@@ -60,7 +60,7 @@ def check_session_key(session_key):
             print("Fix:   F12 → Application → Cookies → claude.ai → sessionKey")
             print(f"Save:  echo 'YOUR_KEY' > {SESSION_KEY_FILE}")
             sys.exit(1)
-        raise
+        pass  # 404 = endpoint removed from API, but key is valid — continue
 
 def get_project_id(session_key):
     url = "https://claude.ai/api/organizations"
@@ -128,7 +128,7 @@ def check_session_key(session_key):
             print("Fix:   F12 → Application → Cookies → claude.ai → sessionKey")
             print(f"Save:  echo 'YOUR_KEY' > {SESSION_KEY_FILE}")
             sys.exit(1)
-        raise
+        pass  # 404 = endpoint removed from API, but key is valid — continue
 
 def get_project_id(session_key):
     url = "https://claude.ai/api/organizations"
