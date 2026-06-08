@@ -32,15 +32,21 @@ assert_dir "$REPO_DIR/skills/brain-sync"    "skill: brain-sync"
 assert_dir "$REPO_DIR/skills/wiki-setup"    "skill: wiki-setup"
 assert_dir "$REPO_DIR/skills/brain-plan"    "skill: brain-plan"
 assert_dir "$REPO_DIR/skills/brain-run"     "skill: brain-run"
+assert_dir "$REPO_DIR/skills/ui-tokens"     "skill: ui-tokens"
 
 assert_file "$REPO_DIR/skills/brain-sync/SKILL.md"  "brain-sync SKILL.md"
 assert_file "$REPO_DIR/skills/wiki-setup/SKILL.md"  "wiki-setup SKILL.md"
 assert_file "$REPO_DIR/skills/brain-plan/SKILL.md"  "brain-plan SKILL.md"
 assert_file "$REPO_DIR/skills/brain-run/SKILL.md"   "brain-run SKILL.md"
+assert_file "$REPO_DIR/skills/ui-tokens/SKILL.md"   "ui-tokens SKILL.md"
 
 assert_file "$REPO_DIR/commands/brain-plan.md"  "command: brain-plan.md"
 assert_file "$REPO_DIR/commands/brain-run.md"   "command: brain-run.md"
 assert_file "$REPO_DIR/commands/wiki.md"        "command: wiki.md"
+
+assert_file "$REPO_DIR/skills/brain-sync/v2-browser-bridge/bridge.js"  "v2 bridge: bridge.js"
+assert_file "$REPO_DIR/skills/brain-sync/v2-browser-bridge/sync.py"    "v2 bridge: sync.py"
+assert_file "$REPO_DIR/skills/brain-sync/v2-browser-bridge/RUNBOOK.md" "v2 bridge: RUNBOOK.md"
 
 # ── Security: no personal data ────────────────────────────────────────────────
 echo ""
@@ -57,6 +63,8 @@ check_no_pattern() {
 
 check_no_pattern "019e7061"        "no hardcoded Project ID (VPSS)"
 check_no_pattern "019e7085"        "no hardcoded Project ID (new claude abilities)"
+check_no_pattern "019d4308"        "no hardcoded Project ID (mostik)"
+check_no_pattern "fc29990a"        "no hardcoded ORG_ID"
 check_no_pattern "ВОблако"         "no personal cloud path"
 check_no_pattern "vitejs-vite-6hpxonsb" "no personal project slug"
 check_no_pattern "Users\\\\user"   "no Windows username path"
@@ -82,7 +90,7 @@ done
 # ── SKILL.md frontmatter ──────────────────────────────────────────────────────
 echo ""
 echo "  [5] SKILL.md frontmatter"
-for skill in brain-sync wiki-setup brain-plan brain-run; do
+for skill in brain-sync wiki-setup brain-plan brain-run ui-tokens; do
     f="$REPO_DIR/skills/$skill/SKILL.md"
     if head -1 "$f" | grep -q "^---"; then
         ok "$skill SKILL.md has frontmatter"
@@ -101,7 +109,7 @@ SKILLS_OUT="$TMPDIR/skills"
 CMDS_OUT="$TMPDIR/commands"
 printf "%s\n%s\n\ny\n" "$SKILLS_OUT" "$CMDS_OUT" | bash "$REPO_DIR/install-linux.sh" > "$TMPDIR/install.log" 2>&1 || true
 
-for skill in brain-sync wiki-setup brain-plan brain-run; do
+for skill in brain-sync wiki-setup brain-plan brain-run ui-tokens; do
     assert_dir "$SKILLS_OUT/$skill" "linux installer: skill $skill installed"
 done
 assert_file "$CMDS_OUT/brain-plan.md" "linux installer: brain-plan.md installed"

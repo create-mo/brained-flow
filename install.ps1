@@ -59,7 +59,7 @@ if ($confirm -notmatch "^[Yy]") {
 Write-Host ""
 Write-Host "  Installing Cowork skills..." -ForegroundColor Cyan
 
-$skills = @("brain-sync", "wiki-setup", "brain-plan", "brain-run")
+$skills = @("brain-sync", "wiki-setup", "brain-plan", "brain-run", "ui-tokens")
 foreach ($skill in $skills) {
     $src = Join-Path $scriptDir "skills\$skill"
     $dst = Join-Path $skillsDest $skill

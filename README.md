@@ -10,6 +10,7 @@ A personal knowledge-driven workflow system for Claude — connecting your local
 | `wiki-setup` | Cowork | Install and configure the sync system from scratch |
 | `brain-plan` | Cowork | Plan tasks grounded in wiki context |
 | `brain-run` | Cowork | Execute plans step by step with subagents |
+| `ui-tokens` | Cowork | Audit and fix UI token usage (hardcoded colors, visual regressions) |
 | `/brain-plan` | Claude Code / VS Code | Create detailed execution plans |
 | `/brain-run` | Claude Code / VS Code | Execute plans via subagents |
 
@@ -103,6 +104,12 @@ The sync system uses your claude.ai session key stored in `~/.claude/claude-ai-s
 ```
 ~/.claude/claude-ai-session.key
 ```
+
+On Chrome 127+ the session cookie is sealed by App-Bound Encryption and can't be
+read programmatically. If you can't obtain a session key, the **v2 Browser
+Bridge** (`skills/brain-sync/v2-browser-bridge/`) syncs from inside a logged-in
+claude.ai tab via the Claude in Chrome extension — no key to copy or store, plus
+two-way merge with conflict handling. See its `RUNBOOK.md`.
 
 ## License
 

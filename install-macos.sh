@@ -48,7 +48,7 @@ read -rp "  Proceed? (y/n): " CONFIRM
 
 echo ""
 echo "  Installing Cowork skills..."
-for SKILL in brain-sync wiki-setup brain-plan brain-run; do
+for SKILL in brain-sync wiki-setup brain-plan brain-run ui-tokens; do
     SRC="$SCRIPT_DIR/skills/$SKILL"
     DST="$SKILLS_DEST/$SKILL"
     rm -rf "$DST"

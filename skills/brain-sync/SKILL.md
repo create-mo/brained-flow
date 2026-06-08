@@ -219,6 +219,33 @@ The scripts authenticate using the claude.ai session cookie:
 
 If sync stops working, the session key has likely expired — repeat the steps above.
 
+## Can't get a session key? Use the v2 Browser Bridge
+
+On Chrome 127+ the `sessionKey` cookie is sealed by App-Bound Encryption (cookie
+v20) and can no longer be read or decrypted programmatically. If you can't copy
+the cookie out, or you just don't want to manage an expiring key, use the
+**browser bridge** in `v2-browser-bridge/` instead.
+
+Idea: don't extract the key — run the sync *inside* the logged-in claude.ai tab
+via the Claude in Chrome extension. The browser attaches the cookie to every
+same-origin `fetch` itself, so no key is stored anywhere and nothing expires.
+
+| File | What it is |
+|------|-----------|
+| `v2-browser-bridge/bridge.js` | In-page `pull` / `push` / `pushMany` — paste into `javascript_tool` on a claude.ai tab. Org ID is resolved at runtime; nothing hardcoded. |
+| `v2-browser-bridge/sync.py` | Two-way merge engine (hashes + manifest). Runs locally; remote I/O goes through the bridge. Projects come from `$BRAIN_DIR/.sync-projects.json`. |
+| `v2-browser-bridge/RUNBOOK.md` | Step-by-step pull / push / merge flow and limitations. |
+
+When to reach for it:
+
+- `wiki-push.py` / `wiki-pull.py` fail to authenticate and refreshing the key
+  doesn't help (App-Bound Encryption) → switch to the bridge.
+- You want two-way merge with conflict handling rather than blind push/pull →
+  use `sync.py` (see RUNBOOK).
+
+Trade-off: the bridge needs an open Chrome with the extension connected — there's
+no silent background cron. For unattended sync, keep the sessionKey scripts.
+
 ## Auto-start on login
 
 **Offer to set this up** when helping a user — they often don't know it's possible.
